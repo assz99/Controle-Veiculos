@@ -86,3 +86,9 @@ typings/
 
 # DynamoDB Local files
 .dynamodb/
+
+Mobile/.expo-shared/
+
+Mobile/.expo/
+
+Mobile/web/.expo/
