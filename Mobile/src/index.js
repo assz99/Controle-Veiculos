@@ -11,7 +11,7 @@ function clickou() {
 }
 
 const params ={
-   "email": "renanguides@hotmail.com",
+   "email": "renanguides@hotmaial.com",
     "password": "123456"
 }
 
@@ -41,7 +41,7 @@ export default class App extends Component {
         ['@CodeApi:token', JSON.stringify(user)]
       ]);
     } catch (response) {
-      this.setState({ error:response.data});
+      this.setState({ error:response.data.error});
       
       error = JSON.stringify(this.state.error);
     
@@ -72,7 +72,7 @@ export default class App extends Component {
 
         <Button onPress={this.signIn} title="Entrar"></Button>
 
-        {!!this.state.error && <Text style={styles.White}>{ JSON.stringify(this.state.error)}</Text> }
+        {!!this.state.error && <Text style={styles.White}>{ this.state.error}</Text> }
 
         
       </View>
