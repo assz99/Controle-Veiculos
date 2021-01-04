@@ -5,10 +5,10 @@ const authMiddleware = require("../middlewares/auth");
 const User = mongoose.model("User");
 
 router.post("/register", async (req, res) => {
-  const { email, username } = req.body;
+  const { name, username,password } = req.body;
 
   try {
-    if (await User.findOne({ email })) {
+    if (await User.findOne({ username })) {
       return res.status(400).json({ error:"Usuario ja existe." });
     }
 
@@ -23,9 +23,9 @@ router.post("/register", async (req, res) => {
 router.post("/authenticate", async (req, res) => {
   try {
     
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    console.log("usuario tentando logar com usuario: "+email);
+    const { username, password } = req.body;
+    const user = await User.findOne({ username });
+    console.log("usuario tentando logar com usuario: "+username);
     
     if (!user) {
       return res.status(400).json({ error: "Usuario não encontrado." });
