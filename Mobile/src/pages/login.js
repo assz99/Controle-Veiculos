@@ -6,6 +6,10 @@ import { withNavigation } from 'react-navigation';
 import api from '../services/api'
 import img_Logo from '../logo_case.png'
 
+function clickou() {
+  console.log("CLickou no botao")
+}
+
 const params = {
   "username": "renan guides",
   "password": "123456"

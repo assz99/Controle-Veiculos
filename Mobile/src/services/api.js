@@ -2,7 +2,7 @@
 import { create } from 'apisauce';
 
 const api = create({
-  baseURL: 'http://192.168.0.93:3000'
+  baseURL: 'http://192.168.4.134:3000'
 });
   
 
