@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const authMiddleware = require("../middlewares/auth");
 
 const User = mongoose.model("User");
+const Motorcycles = mongoose.model("Motorcycles");
 
 router.post("/register", async (req, res) => {
   const { name, username,password } = req.body;
@@ -47,6 +48,18 @@ router.post("/authenticate", async (req, res) => {
 });
 
 router.use(authMiddleware);
+
+router.get("/motos", async(req,res) =>{
+try{
+const motos = await Motorcycles.find();
+
+return res.json({ motos });
+  
+} catch (err) {
+    return res.status(400).json({ error: "Can't get user information" });
+  }
+});
+
 
 router.get("/me", async (req, res) => {
   try {

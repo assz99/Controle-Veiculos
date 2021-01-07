@@ -20,7 +20,7 @@ mongoose.connect(
 
 // Carrega o model de Usuário
 require("./models/user");
-
+require("./models/moto")
 app.use((req,res, next) =>{
   req.io = io;
   return next();
