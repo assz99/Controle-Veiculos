@@ -4,6 +4,7 @@ const authMiddleware = require("../middlewares/auth");
 
 const User = mongoose.model("User");
 const Motorcycles = mongoose.model("Motorcycles");
+const Checklist = mongoose.model("CheckList");
 
 router.post("/register", async (req, res) => {
   const { name, username,password } = req.body;
@@ -23,7 +24,8 @@ router.post("/register", async (req, res) => {
 
 router.post("/authenticate", async (req, res) => {
   try {
-    
+    console.log("entrou");
+
     const { username, password } = req.body;
     const user = await User.findOne({ username });
     console.log("usuario tentando logar com usuario: "+username);
@@ -47,19 +49,50 @@ router.post("/authenticate", async (req, res) => {
   }
 });
 
-router.use(authMiddleware);
+router.post("/motos", async (req, res) => {
+  const { label,value } = req.body;
 
-router.get("/motos", async(req,res) =>{
-try{
-const motos = await Motorcycles.find();
+  try {
+    if (await Motorcycles.findOne({ label })) {
+      return res.status(400).json({ error:"Moto ja existe." });
+    }
+    if (await Motorcycles.findOne({ value })) {
+      return res.status(400).json({ error:"Moto ja existe." });
+    }
 
-return res.json({ motos });
-  
-} catch (err) {
-    return res.status(400).json({ error: "Can't get user information" });
+    const moto = await Motorcycles.create(req.body);
+
+    return res.json({ moto });
+  } catch (err) {
+    return res.status(400).json({ error: "Falha em cadastrar moto." });
   }
 });
 
+
+
+router.get("/motos", async (req, res) => {
+  try {
+    const moto = await Motorcycles.find();
+    return res.json({ moto });
+  } catch (err) {
+    return res.status(400).json({ error: "Falha em pegar as motos." });
+  }
+});
+router.post("/checklist", async (req, res) => {
+  const { user,moto,kmInicial,kmFinal,problems,annotation} = req.body;
+
+  try {
+    
+
+    const checklist = await Checklist.create(req.body);
+
+    return res.json({ moto });
+  } catch (err) {
+    return res.status(400).json({ error: "Falha em cadastrar moto." });
+  }
+});
+
+router.use(authMiddleware);
 
 router.get("/me", async (req, res) => {
   try {
@@ -72,5 +105,7 @@ router.get("/me", async (req, res) => {
     return res.status(400).json({ error: "Can't get user information" });
   }
 });
+
+
 
 module.exports = router;

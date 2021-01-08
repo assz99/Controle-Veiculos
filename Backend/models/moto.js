@@ -12,8 +12,7 @@ const MotorcyclesSchema = new mongoose.Schema({
       required: true,
       lowercase: true
     }
-  },
-  {collection:'motorcycles'}
+  },{collection:'motorcycles'}
   );
 
   mongoose.model("Motorcycles", MotorcyclesSchema);
