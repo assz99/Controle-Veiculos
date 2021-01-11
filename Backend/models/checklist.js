@@ -23,12 +23,14 @@ const checkListSchema = new mongoose.Schema({
     annotation:{
         type:String
     },
-    createdAt: {
+    horarioInicial:{
+        type: Date,
+        required:true
+    },
+    horarioFinal: {
         type: Date,
         default: Date.now
       }
-
-
   },{collection:'checkList'}
   );
 

@@ -79,14 +79,19 @@ router.get("/motos", async (req, res) => {
   }
 });
 router.post("/checklist", async (req, res) => {
-  const { user,moto,kmInicial,kmFinal,problems,annotation} = req.body;
-
+  
   try {
-    
+    const { user,moto,kmInicial,kmFinal,problems,annotation,horarioInicial} = req.body;
+
+    const nMoto = await Motorcycles.findOne({ moto });
+    if (!nMoto) {
+      return res.status(400).json({ error: "Moto não encontrado." });
+      console.log("Moto não encontrado.");
+    }
 
     const checklist = await Checklist.create(req.body);
 
-    return res.json({ moto });
+    return res.json({ checklist });
   } catch (err) {
     return res.status(400).json({ error: "Falha em cadastrar moto." });
   }
