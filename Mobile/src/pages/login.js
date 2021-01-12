@@ -50,7 +50,7 @@ handlePasswordChange = (password) => {
       this.setState({ loggedInUser: user.name });
 
       Alert.alert('Login com Sucesso!');
-      this.props.navigation.navigate('CheckList');
+      this.props.navigation.navigate('CheckList',{user});
       
     } catch (response) {
       this.setState({ error: response.data.error });

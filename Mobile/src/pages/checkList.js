@@ -5,17 +5,20 @@ import CheckBox from 'react-native-check-box'
 import { TextInput } from 'react-native-gesture-handler';
 import RNPickerSelect from 'react-native-picker-select';
 import api from '../services/api'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
-var motos = [] ; 
+var motos = [];
 
 //const getMoto;
 
 
 export default class checklist extends Component {
   state = {
-    motos,
+    user: {},
+    motos: [],
     motoSelected: "",
+    kmInicial:0,
+    kmFinal:0,
     isCheckedPiscaDiantero: false,
     isCheckedPiscaTraseiro: false,
     isCheckedFarol: false,
@@ -35,25 +38,42 @@ export default class checklist extends Component {
     isCheckedEscapamento: false,
     isCheckedRelacao: false,
     isCheckedNapaBanco: false,
+    anotation: "",
 
+  }
+
+  handleKmInicial = (kmInicial) => {
+    kmInicial = kmInicial.toString();
+    this.setState({ kmInicial: kmInicial })
+  }
+
+  handleKmFinal = (kmFinal) => {
+    kmFinal = kmFinal.toString();
+    this.setState({ kmFinal: kmFinal })
+  }
+
+   handleGravar = async () => {
+    const checklist = JSON.stringify(this.state);
+    await AsyncStorage.setItem(
+      '@CodeApi:checkList', checklist
+    );
   }
 
   async componentDidMount() {
     try {
+      const user = this.props.navigation.getParam('user');
       const response = await api.get('api/motos');
-
+      this.setState({ user: user });
+      console.log(this.state.user);
       const rMoto = response.data.moto;
-      motos = rMoto;
-      console.log(rMoto);
+      //motos = rMoto;
+      //console.log(rMoto);
       //console.log(label);
       //console.log(value);
-      //this.setState({ motos: rMotos });
+      this.setState({ motos: rMoto });
     } catch (response) {
       console.log(response);
     }
-
-
-
   }
 
   render() {
@@ -67,11 +87,12 @@ export default class checklist extends Component {
         <View style={{ alignItems: 'center', justifyContent: 'center' }}>
           <RNPickerSelect
             placeholder={placeholder}
-            items={motos}
+            items={this.state.motos}
             onValueChange={value => {
               this.setState({
                 motoSelected: value,
               });
+              //console.log("Moto selecionada: "+ value)
             }}
             style={pickerSelectStyles}
           />
@@ -82,6 +103,7 @@ export default class checklist extends Component {
               placeholder="                     KM Inicial"
               placeholderTextColor="#FFFFFF"
               keyboardType="number-pad"
+              onChangeText={this.handleKmFinal}
             />
             <Text style={styles.kmText}>KM</Text>
           </View>
@@ -91,6 +113,7 @@ export default class checklist extends Component {
               placeholder="                     KM Final"
               placeholderTextColor="#FFFFFF"
               keyboardType="number-pad"
+              onChangeText={this.handleKmInicial}
             />
             <Text style={styles.kmText}>KM</Text>
           </View>
@@ -264,7 +287,7 @@ export default class checklist extends Component {
         <TextInput placeholder="Anotações" placeholderTextColor='#FFFFFF' style={{ height: 100, width: "100%", borderColor: 'white', borderWidth: 1, color: 'white' }} >
         </TextInput>
         <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', marginTop: 5 }}>
-          <TouchableOpacity style={{ height: 40, width: '50%', backgroundColor: 'blue', alignItems: 'center', borderColor: 'black', borderWidth: 1, }} onPress={() => navigation.navigate('Login')}>
+          <TouchableOpacity style={{ height: 40, width: '50%', backgroundColor: 'blue', alignItems: 'center', borderColor: 'black', borderWidth: 1, }} onPress={() => this.handleGravar}>
             <Text style={styles.White}>Salvar</Text>
           </TouchableOpacity>
           <TouchableOpacity style={{ height: 40, width: '50%', backgroundColor: 'blue', alignItems: 'center', borderColor: 'black', borderWidth: 1, }}>
