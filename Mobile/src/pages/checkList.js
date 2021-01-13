@@ -1,5 +1,5 @@
 import React, { useReducer, useState, Component } from 'react';
-import { View, Button, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Button, Text, StyleSheet, ScrollView,Alert, TouchableOpacity } from 'react-native';
 import { withNavigation } from 'react-navigation';
 import CheckBox from 'react-native-check-box'
 import { TextInput } from 'react-native-gesture-handler';
@@ -14,11 +14,12 @@ var motos = [];
 
 export default class checklist extends Component {
   state = {
+    horarioInicial:"",
     user: {},
     motos: [],
     motoSelected: "",
-    kmInicial:0,
-    kmFinal:0,
+    kmInicial: 0,
+    kmFinal: 0,
     isCheckedPiscaDiantero: false,
     isCheckedPiscaTraseiro: false,
     isCheckedFarol: false,
@@ -39,7 +40,7 @@ export default class checklist extends Component {
     isCheckedRelacao: false,
     isCheckedNapaBanco: false,
     annotation: "",
-    
+
   }
 
   handleKmInicial = (kmInicial) => {
@@ -52,38 +53,58 @@ export default class checklist extends Component {
     this.setState({ kmFinal: kmFinal })
   }
 
-   handleGravar = async () => {
-     try{
-      console.log("Gravando");
-    const checklist = JSON.stringify(this.state);
-    console.log(checklist);
-    await AsyncStorage.setItem('@CodeApi:checkList', checklist);
-    console.log("Gravado");
-   
-  }catch(e){
-    console.log("error:"+ e);
+  handleGravar = async () => {
+    try {
+      let d = new Date();
+      this.setState({horarioInicial:d.toISOString()})
+      const checklist = JSON.stringify(this.state);
+      console.log(checklist);
+      await AsyncStorage.setItem('@CodeApi:checkList', checklist);
+      console.log("Gravado");
+      Alert.alert('Gravado com Sucesso!');
+    } catch (e) {
+      console.log("error:" + e);
+    }
   }
+
+  handleEnviar = async () => {
+    try{
+      const result = {
+        user:this.state.user.username,
+        moto:this.state.motoSelected,
+        kmInicial:this.state.kmInicial,
+        kmFinal:this.state.kmFinal,
+        problems:"",
+        annotation:this.state.annotation,
+        horarioInicial:this.state.horarioInicial,
+      };
+      const response = await api.post('/api/checklist',
+        result);
+    }catch(response){
+      console.log("error:" + response);
+    }
   }
 
   handleAnnotationChange = (annotation) => {
     annotation = annotation.toString();
     this.setState({ annotation: annotation })
- }
+  }
 
   async componentDidMount() {
     try {
       const test = await AsyncStorage.getItem('@CodeApi:checkList');
-      if(test !== null){
+      if (test !== null) {
         const newState = JSON.parse(test);
-        console.log("TEM ALGO AKI"); 
+        console.log("TEM ALGO AKI");
         this.setState(newState);
-        console.log(newState);
-      }else{
-      const user = this.props.navigation.getParam('user');
-      const response = await api.get('api/motos');
-      this.setState({ user: user });
-      const rMoto = response.data.moto;
-      this.setState({ motos: rMoto });}
+        
+      } else {
+        const user = this.props.navigation.getParam('user');
+        const response = await api.get('api/motos');
+        this.setState({ user: user });
+        const rMoto = response.data.moto;
+        this.setState({ motos: rMoto });
+      }
     } catch (response) {
       console.log(response);
     }
@@ -118,7 +139,7 @@ export default class checklist extends Component {
               placeholderTextColor="#FFFFFF"
               keyboardType="number-pad"
               onChangeText={this.handleKmFinal}
-              value = {this.state.kmInicial.toString()}
+              value={this.state.kmInicial.toString()}
             />
             <Text style={styles.kmText}>KM</Text>
           </View>
@@ -129,7 +150,7 @@ export default class checklist extends Component {
               placeholderTextColor="#FFFFFF"
               keyboardType="number-pad"
               onChangeText={this.handleKmInicial}
-              value = {this.state.kmFinal.toString()}
+              value={this.state.kmFinal.toString()}
             />
             <Text style={styles.kmText}>KM</Text>
           </View>
@@ -354,7 +375,6 @@ const pickerSelectStyles = StyleSheet.create({
     borderColor: 'purple',
     borderRadius: 8,
     color: 'white',
-    justifyContent:'center',
     paddingRight: 30, // to ensure the text is never behind the icon
   },
 });
