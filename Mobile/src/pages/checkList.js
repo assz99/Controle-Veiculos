@@ -38,8 +38,8 @@ export default class checklist extends Component {
     isCheckedEscapamento: false,
     isCheckedRelacao: false,
     isCheckedNapaBanco: false,
-    anotation: "",
-
+    annotation: "",
+    
   }
 
   handleKmInicial = (kmInicial) => {
@@ -53,24 +53,37 @@ export default class checklist extends Component {
   }
 
    handleGravar = async () => {
+     try{
+      console.log("Gravando");
     const checklist = JSON.stringify(this.state);
-    await AsyncStorage.setItem(
-      '@CodeApi:checkList', checklist
-    );
+    console.log(checklist);
+    await AsyncStorage.setItem('@CodeApi:checkList', checklist);
+    console.log("Gravado");
+   
+  }catch(e){
+    console.log("error:"+ e);
   }
+  }
+
+  handleAnnotationChange = (annotation) => {
+    annotation = annotation.toString();
+    this.setState({ annotation: annotation })
+ }
 
   async componentDidMount() {
     try {
+      const test = await AsyncStorage.getItem('@CodeApi:checkList');
+      if(test !== null){
+        const newState = JSON.parse(test);
+        console.log("TEM ALGO AKI"); 
+        this.setState(newState);
+        console.log(newState);
+      }else{
       const user = this.props.navigation.getParam('user');
       const response = await api.get('api/motos');
       this.setState({ user: user });
-      console.log(this.state.user);
       const rMoto = response.data.moto;
-      //motos = rMoto;
-      //console.log(rMoto);
-      //console.log(label);
-      //console.log(value);
-      this.setState({ motos: rMoto });
+      this.setState({ motos: rMoto });}
     } catch (response) {
       console.log(response);
     }
@@ -94,6 +107,7 @@ export default class checklist extends Component {
               });
               //console.log("Moto selecionada: "+ value)
             }}
+            value={this.state.motoSelected}
             style={pickerSelectStyles}
           />
 
@@ -104,6 +118,7 @@ export default class checklist extends Component {
               placeholderTextColor="#FFFFFF"
               keyboardType="number-pad"
               onChangeText={this.handleKmFinal}
+              value = {this.state.kmInicial.toString()}
             />
             <Text style={styles.kmText}>KM</Text>
           </View>
@@ -114,6 +129,7 @@ export default class checklist extends Component {
               placeholderTextColor="#FFFFFF"
               keyboardType="number-pad"
               onChangeText={this.handleKmInicial}
+              value = {this.state.kmFinal.toString()}
             />
             <Text style={styles.kmText}>KM</Text>
           </View>
@@ -284,10 +300,10 @@ export default class checklist extends Component {
             rightText={'Napa Banco'} rightTextStyle={styles.White}
           />
         </View>
-        <TextInput placeholder="Anotações" placeholderTextColor='#FFFFFF' style={{ height: 100, width: "100%", borderColor: 'white', borderWidth: 1, color: 'white' }} >
+        <TextInput placeholder="Anotações" placeholderTextColor='#FFFFFF' value={this.state.annotation} onChangeText={this.handleAnnotationChange} style={{ height: 100, width: "100%", borderColor: 'white', borderWidth: 1, color: 'white' }} >
         </TextInput>
         <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', marginTop: 5 }}>
-          <TouchableOpacity style={{ height: 40, width: '50%', backgroundColor: 'blue', alignItems: 'center', borderColor: 'black', borderWidth: 1, }} onPress={() => this.handleGravar}>
+          <TouchableOpacity style={{ height: 40, width: '50%', backgroundColor: 'blue', alignItems: 'center', borderColor: 'black', borderWidth: 1, }} onPress={this.handleGravar}>
             <Text style={styles.White}>Salvar</Text>
           </TouchableOpacity>
           <TouchableOpacity style={{ height: 40, width: '50%', backgroundColor: 'blue', alignItems: 'center', borderColor: 'black', borderWidth: 1, }}>
@@ -338,7 +354,7 @@ const pickerSelectStyles = StyleSheet.create({
     borderColor: 'purple',
     borderRadius: 8,
     color: 'white',
-    textAlignVertical: 'center',
+    justifyContent:'center',
     paddingRight: 30, // to ensure the text is never behind the icon
   },
 });
