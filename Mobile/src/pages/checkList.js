@@ -1,5 +1,5 @@
 import React, { useReducer, useState, Component } from 'react';
-import { View, Button, Text, StyleSheet, ScrollView,Alert, TouchableOpacity } from 'react-native';
+import { View, Button, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, Modal, Image, ImageBackground } from 'react-native';
 import { withNavigation } from 'react-navigation';
 import CheckBox from 'react-native-check-box'
 import { TextInput } from 'react-native-gesture-handler';
@@ -7,14 +7,13 @@ import RNPickerSelect from 'react-native-picker-select';
 import api from '../services/api'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-var motos = [];
-
-//const getMoto;
-
+import { Camera } from 'expo-camera'
+import img_Camera from '../img_Camera.png';
+let camera = Camera;
 
 export default class checklist extends Component {
   state = {
-    horarioInicial:"",
+    horarioInicial: "",
     user: {},
     motos: [],
     motoSelected: "",
@@ -40,6 +39,9 @@ export default class checklist extends Component {
     isCheckedRelacao: false,
     isCheckedNapaBanco: false,
     annotation: "",
+    modalVisible: false,
+    previewVisible: false,
+    capturedImage: null,
 
   }
 
@@ -56,7 +58,7 @@ export default class checklist extends Component {
   handleGravar = async () => {
     try {
       let d = new Date();
-      this.setState({horarioInicial:d.toISOString()})
+      this.setState({ horarioInicial: d.toISOString() })
       const checklist = JSON.stringify(this.state);
       console.log(checklist);
       await AsyncStorage.setItem('@CodeApi:checkList', checklist);
@@ -68,19 +70,19 @@ export default class checklist extends Component {
   }
 
   handleEnviar = async () => {
-    try{
+    try {
       const result = {
-        user:this.state.user.username,
-        moto:this.state.motoSelected,
-        kmInicial:this.state.kmInicial,
-        kmFinal:this.state.kmFinal,
-        problems:"",
-        annotation:this.state.annotation,
-        horarioInicial:this.state.horarioInicial,
+        user: this.state.user.username,
+        moto: this.state.motoSelected,
+        kmInicial: this.state.kmInicial,
+        kmFinal: this.state.kmFinal,
+        problems: "",
+        annotation: this.state.annotation,
+        horarioInicial: this.state.horarioInicial,
       };
       const response = await api.post('/api/checklist',
         result);
-    }catch(response){
+    } catch (response) {
       console.log("error:" + response);
     }
   }
@@ -90,6 +92,48 @@ export default class checklist extends Component {
     this.setState({ annotation: annotation })
   }
 
+  setModalVisible = (visible) => {
+    this.setState({ modalVisible: visible });
+  }
+
+  takePicture = async () => {
+    const options = { quality: 0.5, base64: true };
+    const data = await camera.takePictureAsync();
+    console.log("Foto: " + data);
+    this.setState({capturedImage: data,
+      previewVisible: true})
+      
+    //alert(data.uri);
+    //this.setModalVisible(!modalVisible);
+
+  };
+
+  __startCamera = async () => {
+    const { status } = await Camera.requestPermissionsAsync()
+    console.log(status)
+    if (status === 'granted') {
+      Alert.alert('Access granted')
+      this.setState({ modalVisible: true });
+    } else {
+      Alert.alert('Access denied')
+    }
+  }
+
+  __retakePicture = () => {
+    //console.log("Teste");
+    this.setState({
+      previewVisible: false,
+      capturedImage: null
+    });
+    console.log("Teste");
+    this.__startCamera();
+  }
+
+  __savePhoto= () => {
+      this.setState({modalVisible:false});
+      Alert.alert("Imagem Salva");
+  }
+
   async componentDidMount() {
     try {
       const test = await AsyncStorage.getItem('@CodeApi:checkList');
@@ -97,7 +141,7 @@ export default class checklist extends Component {
         const newState = JSON.parse(test);
         console.log("TEM ALGO AKI");
         this.setState(newState);
-        
+
       } else {
         const user = this.props.navigation.getParam('user');
         const response = await api.get('api/motos');
@@ -118,7 +162,144 @@ export default class checklist extends Component {
     };
     return (
       <ScrollView style={styles.container}>
-        <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <Modal
+            animationType="slide"
+            transparent={false}
+            visible={this.state.modalVisible}
+          >
+            {this.state.previewVisible && this.state.capturedImage ? (
+              <View
+              style={{
+                backgroundColor: 'transparent',
+                flex: 1,
+                width: '100%',
+                height: '100%'
+              }}
+            >
+              <ImageBackground
+                source={{ uri: this.state.capturedImage && this.state.capturedImage.uri }}
+                style={{
+                  flex: 1
+                }}
+              >
+                <View
+                  style={{
+                    flex: 1,
+                    flexDirection: 'column',
+                    padding: 15,
+                    justifyContent: 'flex-end'
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <TouchableOpacity
+                      onPress={this.__retakePicture}
+                      style={{
+                        width: 130,
+                        height: 40,
+        
+                        alignItems: 'center',
+                        borderRadius: 4
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: '#fff',
+                          fontSize: 20
+                        }}
+                      >
+                        Re-take
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={this.__savePhoto}
+                      style={{
+                        width: 130,
+                        height: 40,
+        
+                        alignItems: 'center',
+                        borderRadius: 4
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: '#fff',
+                          fontSize: 20
+                        }}
+                      >
+                        save photo
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </ImageBackground>
+            </View>
+            ) : (
+                <Camera
+                  type={Camera.Constants.Type.back}
+                  flashMode={'off'}
+                  style={{ flex: 1 }}
+                  ref={(r) => {
+                    camera = r
+                  }}
+                >
+                  <View
+                    style={{
+                      flex: 1,
+                      width: '100%',
+                      backgroundColor: 'transparent',
+                      flexDirection: 'row'
+                    }}
+                  >
+                    <View
+                      style={{
+                        position: 'absolute',
+                        left: '5%',
+                        top: '10%',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between'
+                      }}
+                    >
+                    </View>
+                    <View
+                      style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        flexDirection: 'row',
+                        flex: 1,
+                        width: '100%',
+                        padding: 20,
+                        justifyContent: 'space-between'
+                      }}
+                    >
+                      <View
+                        style={{
+                          alignSelf: 'center',
+                          flex: 1,
+                          alignItems: 'center'
+                        }}
+                      >
+                        <TouchableOpacity
+                          onPress={this.takePicture}
+                          style={{
+                            width: 70,
+                            height: 70,
+                            bottom: 0,
+                            borderRadius: 50,
+                            backgroundColor: '#fff'
+                          }}
+                        />
+                      </View>
+                    </View>
+                  </View>
+                </Camera>
+              )}
+          </Modal>
           <RNPickerSelect
             placeholder={placeholder}
             items={this.state.motos}
@@ -320,6 +501,13 @@ export default class checklist extends Component {
             checkBoxColor={'#FF0000'} isChecked={this.state.isCheckedNapaBanco}
             rightText={'Napa Banco'} rightTextStyle={styles.White}
           />
+          <TouchableOpacity onPress={() => {
+            this.__startCamera();
+          }}>
+            <Image style={styles.logo}
+              source={img_Camera}
+            />
+          </TouchableOpacity>
         </View>
         <TextInput placeholder="Anotações" placeholderTextColor='#FFFFFF' value={this.state.annotation} onChangeText={this.handleAnnotationChange} style={{ height: 100, width: "100%", borderColor: 'white', borderWidth: 1, color: 'white' }} >
         </TextInput>
@@ -361,6 +549,9 @@ const styles = StyleSheet.create({
   },
   botao: {
     width: '80%'
+  },
+  buttonText: {
+    fontSize: 14
   }
 
 
@@ -378,3 +569,4 @@ const pickerSelectStyles = StyleSheet.create({
     paddingRight: 30, // to ensure the text is never behind the icon
   },
 });
+
