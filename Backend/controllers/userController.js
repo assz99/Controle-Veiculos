@@ -1,10 +1,12 @@
 const router = require("express").Router();
 const mongoose = require("mongoose");
 const authMiddleware = require("../middlewares/auth");
-
+const fs = require('fs');
 const User = mongoose.model("User");
 const Motorcycles = mongoose.model("Motorcycles");
 const Checklist = mongoose.model("CheckList");
+const multer = require('multer');
+
 
 router.post("/register", async (req, res) => {
   const { name, username,password } = req.body;
@@ -76,23 +78,55 @@ router.get("/motos", async (req, res) => {
   } catch (err) {
     return res.status(400).json({ error: "Falha em pegar as motos." });
   }
-});
+})
+
+const Storage = multer.diskStorage({
+  destination(req, file, callback) {
+    callback(null, './images')
+  },
+  filename(req, file, callback) {
+    callback(null, `${file.fieldname}_${Date.now()}_${file.originalname}`)
+  },
+})
+
+const upload = multer({ storage: Storage })
+
 router.post("/checklist", async (req, res) => {
   
   try {
-    const { user,moto,kmInicial,kmFinal,problems,annotation,horarioInicial} = req.body;
-
-    const nMoto = await Motorcycles.findOne({ moto });
+    const { state,img64} = req.body;
+    console.log(state);
+    const moto = state.motoSelected;
+    const data = state.horarioInicial;
+    const nMoto = await Motorcycles.findOne({label:moto});
     if (!nMoto) {
-      return res.status(400).json({ error: "Moto não encontrado." });
       console.log("Moto não encontrado.");
+      return res.status(400).json({ error: "Moto não encontrado." });
     }
+    console.log("Moto: "+ moto +" encontrada.");
+    console.log(img64);
+    const path = moto+"_"+data+".jpg";
+    fs.writeFile(path, img64, function (err) {
+      if (err) throw err;
+      console.log('Saved!');
+    });
+    const CheckList={
+      user:state.user,
+      motoSelected:state.motoSelected,
+      kmInicial:state.kmInicial,
+      kmFinal:state.kmFinal,
+      annotation:state.annotation,
+      horarioInicial:state.horarioInicial,
+      capturedImage:path
+    };
 
-    const checklist = await Checklist.create(req.body);
+
+    const checklist = await Checklist.create(CheckList);
 
     return res.json({ checklist });
   } catch (err) {
-    return res.status(400).json({ error: "Falha em cadastrar moto." });
+    console.log(err);
+    return res.status(400).json({ error: "Falha em cadastrar checklist." });
   }
 });
 

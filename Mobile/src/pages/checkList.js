@@ -6,6 +6,7 @@ import { TextInput } from 'react-native-gesture-handler';
 import RNPickerSelect from 'react-native-picker-select';
 import api from '../services/api'
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system';
 
 import { Camera } from 'expo-camera'
 import img_Camera from '../img_Camera.png';
@@ -58,7 +59,8 @@ export default class checklist extends Component {
   handleGravar = async () => {
     try {
       let d = new Date();
-      this.setState({ horarioInicial: d.toISOString() })
+      const data = d.toISOString(); 
+      this.setState({ horarioInicial: data });
       const checklist = JSON.stringify(this.state);
       console.log(checklist);
       await AsyncStorage.setItem('@CodeApi:checkList', checklist);
@@ -69,21 +71,76 @@ export default class checklist extends Component {
     }
   }
 
+   clean(obj) {
+    for (var propName in obj) {
+      if (obj[propName] === null || obj[propName] === false) {
+        delete obj[propName];
+      }
+    }
+    return obj
+  }
+
   handleEnviar = async () => {
     try {
+      //const img64 = this.getDataUrl(this.state.capturedImage);
+      //const img64 = await FileSystem.readAsStringAsync(this.state.capturedImage.uri, { encoding: 'base64' });
+      const img64 = this.state.capturedImage;
+
+      const imagesData = new FormData();
+      imagesData.append('image', {
+        uri: img64.uri,
+        type: 'image/jpeg',
+        name: `${this.state.motoSelected}_${this.state.horarioInicial}.jpg`
+      });
+      console.log(imagesData);
+      var cleanState = this.state;
+      this.clean(cleanState);
+      delete cleanState.motos;
+      delete cleanState.previewVisible;
       const result = {
-        user: this.state.user.username,
-        moto: this.state.motoSelected,
-        kmInicial: this.state.kmInicial,
-        kmFinal: this.state.kmFinal,
-        problems: "",
-        annotation: this.state.annotation,
-        horarioInicial: this.state.horarioInicial,
+        state:cleanState,
+        img64: imagesData
       };
-      const response = await api.post('/api/checklist',
-        result);
+      console.log(result);
+      const response = await api.post('/api/checklist', result);
+
+      this.setState({
+        horarioInicial: "",
+        user: {},
+        motos: [],
+        motoSelected: "",
+        kmInicial: 0,
+        kmFinal: 0,
+        isCheckedPiscaDiantero: false,
+        isCheckedPiscaTraseiro: false,
+        isCheckedFarol: false,
+        isCheckedRetrovisor: false,
+        isCheckedSusDianteira: false,
+        isCheckedLuzFreio: false,
+        isCheckedParalama: false,
+        isCheckedTanqueCombustivel: false,
+        isCheckedDiscoFreio: false,
+        isCheckedPneuTraseiro: false,
+        isCheckedAroTraseiro: false,
+        isCheckedResOleoMotor: false,
+        isCheckedPneuDianteiro: false,
+        isCheckedAroDianteiro: false,
+        isCheckedMotor: false,
+        isCheckedCaixaPlastica: false,
+        isCheckedEscapamento: false,
+        isCheckedRelacao: false,
+        isCheckedNapaBanco: false,
+        annotation: "",
+        modalVisible: false,
+        previewVisible: false,
+        capturedImage: null,
+      })
+      Alert.alert('CheckList Enviado');
+      await AsyncStorage.removeItem('@CodeApi:checkList')
+      this.props.navigation.navigate('login');
     } catch (response) {
-      console.log("error:" + response);
+      console.log("error: ");
+      console.log(response);
     }
   }
 
@@ -96,15 +153,19 @@ export default class checklist extends Component {
     this.setState({ modalVisible: visible });
   }
 
+  
+
   takePicture = async () => {
     const options = { quality: 0.5, base64: true };
     const data = await camera.takePictureAsync();
-    console.log("Foto: " + data);
-    this.setState({capturedImage: data,
-      previewVisible: true})
-      
-    //alert(data.uri);
-    //this.setModalVisible(!modalVisible);
+    console.log("Foto: ");
+    console.log(data);
+    this.setState({
+      capturedImage: data,
+      previewVisible: true
+    })
+
+
 
   };
 
@@ -129,9 +190,9 @@ export default class checklist extends Component {
     this.__startCamera();
   }
 
-  __savePhoto= () => {
-      this.setState({modalVisible:false});
-      Alert.alert("Imagem Salva");
+  __savePhoto = () => {
+    this.setState({ modalVisible: false });
+    Alert.alert("Imagem Salva");
   }
 
   async componentDidMount() {
@@ -170,75 +231,75 @@ export default class checklist extends Component {
           >
             {this.state.previewVisible && this.state.capturedImage ? (
               <View
-              style={{
-                backgroundColor: 'transparent',
-                flex: 1,
-                width: '100%',
-                height: '100%'
-              }}
-            >
-              <ImageBackground
-                source={{ uri: this.state.capturedImage && this.state.capturedImage.uri }}
                 style={{
-                  flex: 1
+                  backgroundColor: 'transparent',
+                  flex: 1,
+                  width: '100%',
+                  height: '100%'
                 }}
               >
-                <View
+                <ImageBackground
+                  source={{ uri: this.state.capturedImage && this.state.capturedImage.uri }}
                   style={{
-                    flex: 1,
-                    flexDirection: 'column',
-                    padding: 15,
-                    justifyContent: 'flex-end'
+                    flex: 1
                   }}
                 >
                   <View
                     style={{
-                      flexDirection: 'row',
-                      justifyContent: 'space-between'
+                      flex: 1,
+                      flexDirection: 'column',
+                      padding: 15,
+                      justifyContent: 'flex-end'
                     }}
                   >
-                    <TouchableOpacity
-                      onPress={this.__retakePicture}
+                    <View
                       style={{
-                        width: 130,
-                        height: 40,
-        
-                        alignItems: 'center',
-                        borderRadius: 4
+                        flexDirection: 'row',
+                        justifyContent: 'space-between'
                       }}
                     >
-                      <Text
+                      <TouchableOpacity
+                        onPress={this.__retakePicture}
                         style={{
-                          color: '#fff',
-                          fontSize: 20
+                          width: 130,
+                          height: 40,
+
+                          alignItems: 'center',
+                          borderRadius: 4
                         }}
                       >
-                        Re-take
+                        <Text
+                          style={{
+                            color: '#fff',
+                            fontSize: 20
+                          }}
+                        >
+                          Re-take
                       </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={this.__savePhoto}
-                      style={{
-                        width: 130,
-                        height: 40,
-        
-                        alignItems: 'center',
-                        borderRadius: 4
-                      }}
-                    >
-                      <Text
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={this.__savePhoto}
                         style={{
-                          color: '#fff',
-                          fontSize: 20
+                          width: 130,
+                          height: 40,
+
+                          alignItems: 'center',
+                          borderRadius: 4
                         }}
                       >
-                        save photo
+                        <Text
+                          style={{
+                            color: '#fff',
+                            fontSize: 20
+                          }}
+                        >
+                          save photo
                       </Text>
-                    </TouchableOpacity>
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                </View>
-              </ImageBackground>
-            </View>
+                </ImageBackground>
+              </View>
             ) : (
                 <Camera
                   type={Camera.Constants.Type.back}
@@ -515,7 +576,7 @@ export default class checklist extends Component {
           <TouchableOpacity style={{ height: 40, width: '50%', backgroundColor: 'blue', alignItems: 'center', borderColor: 'black', borderWidth: 1, }} onPress={this.handleGravar}>
             <Text style={styles.White}>Salvar</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={{ height: 40, width: '50%', backgroundColor: 'blue', alignItems: 'center', borderColor: 'black', borderWidth: 1, }}>
+          <TouchableOpacity style={{ height: 40, width: '50%', backgroundColor: 'blue', alignItems: 'center', borderColor: 'black', borderWidth: 1, }} onPress={this.handleEnviar}>
             <Text style={styles.White}>Enviar</Text>
           </TouchableOpacity>
         </View>

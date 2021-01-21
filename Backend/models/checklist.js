@@ -5,7 +5,7 @@ const checkListSchema = new mongoose.Schema({
       type: String,
       require: true
     },
-    moto: {
+    motoSelected: {
       type: String,
       required: true
     },
@@ -30,7 +30,11 @@ const checkListSchema = new mongoose.Schema({
     horarioFinal: {
         type: Date,
         default: Date.now
-      }
+      },
+    capturedImage:{
+      type: String,
+      
+    }
   },{collection:'checkList'}
   );
 
