@@ -5,7 +5,6 @@ const fs = require('fs');
 const User = mongoose.model("User");
 const Motorcycles = mongoose.model("Motorcycles");
 const Checklist = mongoose.model("CheckList");
-const multer = require('multer');
 
 
 router.post("/register", async (req, res) => {
@@ -80,16 +79,6 @@ router.get("/motos", async (req, res) => {
   }
 })
 
-const Storage = multer.diskStorage({
-  destination(req, file, callback) {
-    callback(null, './images')
-  },
-  filename(req, file, callback) {
-    callback(null, `${file.fieldname}_${Date.now()}_${file.originalname}`)
-  },
-})
-
-const upload = multer({ storage: Storage })
 
 router.post("/checklist", async (req, res) => {
   
@@ -130,19 +119,6 @@ router.post("/checklist", async (req, res) => {
   }
 });
 
-router.use(authMiddleware);
-
-router.get("/me", async (req, res) => {
-  try {
-    const { userId } = req;
-
-    const user = await User.findById(userId);
-
-    return res.json({ user });
-  } catch (err) {
-    return res.status(400).json({ error: "Can't get user information" });
-  }
-});
 
 
 
