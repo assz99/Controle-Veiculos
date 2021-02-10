@@ -7,6 +7,8 @@ import RNPickerSelect from 'react-native-picker-select';
 import api from '../services/api'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
+import axios from 'axios'
+
 
 import { Camera } from 'expo-camera'
 import img_Camera from '../img_Camera.png';
@@ -18,8 +20,8 @@ export default class checklist extends Component {
     user: {},
     motos: [],
     motoSelected: "",
-    kmInicial: 0,
-    kmFinal: 0,
+    kmInicial: '',
+    kmFinal: '',
     isCheckedPiscaDiantero: false,
     isCheckedPiscaTraseiro: false,
     isCheckedFarol: false,
@@ -43,7 +45,7 @@ export default class checklist extends Component {
     modalVisible: false,
     previewVisible: false,
     capturedImage: null,
-
+    problems: "",
   }
 
   handleKmInicial = (kmInicial) => {
@@ -59,8 +61,9 @@ export default class checklist extends Component {
   handleGravar = async () => {
     try {
       let d = new Date();
-      const data = d.toISOString(); 
-      this.setState({ horarioInicial: data });
+      const data = d.toISOString();
+      console.log(data);
+      this.state.horarioInicial = data;
       const checklist = JSON.stringify(this.state);
       console.log(checklist);
       await AsyncStorage.setItem('@CodeApi:checkList', checklist);
@@ -71,7 +74,7 @@ export default class checklist extends Component {
     }
   }
 
-   clean(obj) {
+  clean(obj) {
     for (var propName in obj) {
       if (obj[propName] === null || obj[propName] === false) {
         delete obj[propName];
@@ -80,34 +83,52 @@ export default class checklist extends Component {
     return obj
   }
 
+  isTrue(obj) {
+    var keys = Object.keys(obj);
+    var filtered = keys.filter(function (key) { 
+      return obj[key] == true;
+    });
+    //console.log(filtered);
+    const x = filtered.toString();
+    return x;
+  }
+
   handleEnviar = async () => {
     try {
-      //const img64 = this.getDataUrl(this.state.capturedImage);
-      //const img64 = await FileSystem.readAsStringAsync(this.state.capturedImage.uri, { encoding: 'base64' });
-      const img64 = this.state.capturedImage;
+      if (this.state.capturedImage !== null) {
+        console.log("Entrou");
+        const img64 = this.state.capturedImage;
+        const imagesData = new FormData();
+        const imageName = `${this.state.user.name}_${this.state.motoSelected}_${Date.now()}.jpg`;
+        imagesData.append('image', {
+          name: imageName,
+          uri: img64.uri,
+          type: 'image/jpg',
 
-      const imagesData = new FormData();
-      imagesData.append('image', {
-        uri: img64.uri,
-        type: 'image/jpeg',
-        name: `${this.state.motoSelected}_${this.state.horarioInicial}.jpg`
-      });
-      console.log(imagesData);
+        })
+        const headers = {
+          'Content-Type': 'multipart/form-data'
+        }
+        this.setState({imageName:imageName})
+        const erro = await api.post('/upload', imagesData, { headers });
+      }
       var cleanState = this.state;
+
       this.clean(cleanState);
+      var problems = this.isTrue(cleanState);
+      cleanState.problems = problems;
       delete cleanState.motos;
       delete cleanState.previewVisible;
-      const result = {
-        state:cleanState,
-        img64: imagesData
-      };
-      console.log(result);
-      const response = await api.post('/api/checklist', result);
+      delete cleanState.password;
+      console.log(cleanState)
+      const response = await api.post('/api/checklist', cleanState);
+
+
 
       this.setState({
         horarioInicial: "",
         user: {},
-        motos: [],
+        motos: {},
         motoSelected: "",
         kmInicial: 0,
         kmFinal: 0,
@@ -134,6 +155,7 @@ export default class checklist extends Component {
         modalVisible: false,
         previewVisible: false,
         capturedImage: null,
+        imageName:"",
       })
       Alert.alert('CheckList Enviado');
       await AsyncStorage.removeItem('@CodeApi:checkList')
@@ -153,7 +175,7 @@ export default class checklist extends Component {
     this.setState({ modalVisible: visible });
   }
 
-  
+
 
   takePicture = async () => {
     const options = { quality: 0.5, base64: true };
@@ -164,9 +186,6 @@ export default class checklist extends Component {
       capturedImage: data,
       previewVisible: true
     })
-
-
-
   };
 
   __startCamera = async () => {
@@ -380,7 +399,7 @@ export default class checklist extends Component {
               placeholder="                     KM Inicial"
               placeholderTextColor="#FFFFFF"
               keyboardType="number-pad"
-              onChangeText={this.handleKmFinal}
+              onChangeText={this.handleKmInicial}
               value={this.state.kmInicial.toString()}
             />
             <Text style={styles.kmText}>KM</Text>
@@ -391,7 +410,7 @@ export default class checklist extends Component {
               placeholder="                     KM Final"
               placeholderTextColor="#FFFFFF"
               keyboardType="number-pad"
-              onChangeText={this.handleKmInicial}
+              onChangeText={this.handleKmFinal}
               value={this.state.kmFinal.toString()}
             />
             <Text style={styles.kmText}>KM</Text>

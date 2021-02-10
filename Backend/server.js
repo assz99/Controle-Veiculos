@@ -3,6 +3,7 @@ const app = express();
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const multer = require('multer');
+const os = require("os");
 const cors = require('cors');
 const server = require('http').Server(app);
 const io = require('socket.io')(server,{
@@ -29,17 +30,21 @@ app.use((req,res, next) =>{
   return next();
 });
 
+const options = {
+  uploadDir: os.tmpdir(),
+  autoClean: false
+};
+
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-
 
 const Storage = multer.diskStorage({
   destination(req, file, callback) {
     callback(null, './images')
   },
   filename(req, file, callback) {
-    callback(null, `${file.fieldname}_${Date.now()}_${file.originalname}`)
+    callback(null, `${file.originalname}.jpg`)
   },
 })
 
@@ -50,7 +55,6 @@ app.post('/upload', upload.single('image'), (req,res)=>{
   res.send('ok');
 
 })
-
 
 // Inicia as rotas da API
 app.use("/api", require("./controllers/userController"));
