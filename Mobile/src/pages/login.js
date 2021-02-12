@@ -11,8 +11,8 @@ function clickou() {
 }
 
 const params = {
-  "username": "renan guides",
-  "password": "123456"
+  "username": "",
+  "password": ""
 }
 
 var error = "";
@@ -63,6 +63,7 @@ handlePasswordChange = (password) => {
   };
 
   async componentDidMount() {
+    
     const token = await AsyncStorage.getItem('@CodeApi:token');
     const user = JSON.parse(await AsyncStorage.getItem('@CodeApi:user'))
 

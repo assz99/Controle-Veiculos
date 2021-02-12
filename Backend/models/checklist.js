@@ -24,16 +24,17 @@ const checkListSchema = new mongoose.Schema({
         type:String
     },
     horarioInicial:{
-        type: Date,
+        type: String,
         required:true
     },
     horarioFinal: {
-        type: Date,
-        default: Date.now
+        type: String
       },
     capturedImage:{
       type: String,
-      
+    },
+    imageName:{
+      type:String,
     }
   },{collection:'checkList'}
   );

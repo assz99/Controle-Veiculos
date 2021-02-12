@@ -14,7 +14,7 @@ const io = require('socket.io')(server,{
 
 // Conecta no MongoDB
 mongoose.connect(
-  "mongodb://localhost:27017/",{ 
+  "mongodb://localhost:27017/checkList",{ 
     useUnifiedTopology: true, 
     useNewUrlParser: true
     }

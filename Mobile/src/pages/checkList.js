@@ -16,10 +16,10 @@ let camera = Camera;
 
 export default class checklist extends Component {
   state = {
-    horarioInicial: "",
+    horarioInicial: '',
     user: {},
     motos: [],
-    motoSelected: "",
+    motoSelected: '',
     kmInicial: '',
     kmFinal: '',
     isCheckedPiscaDiantero: false,
@@ -60,15 +60,19 @@ export default class checklist extends Component {
 
   handleGravar = async () => {
     try {
+      if(this.state.motoSelected==null){
+        Alert.alert("Selecione um Moto");
+        return;
+      }
       let d = new Date();
-      const data = d.toISOString();
+      const data = d.toString();
       console.log(data);
-      this.state.horarioInicial = data;
+      await this.setState({ horarioInicial: data }); 
       const checklist = JSON.stringify(this.state);
       console.log(checklist);
       await AsyncStorage.setItem('@CodeApi:checkList', checklist);
       console.log("Gravado");
-      Alert.alert('Gravado com Sucesso!');
+      Alert.alert('Gravado com Sucesso!');     
     } catch (e) {
       console.log("error:" + e);
     }
@@ -95,8 +99,12 @@ export default class checklist extends Component {
 
   handleEnviar = async () => {
     try {
-      if (this.state.capturedImage !== null) {
-        console.log("Entrou");
+      if(this.state.kmInicial > this.state.kmFinal){
+        Alert.alert('KM inicial esta maior que a Final');
+        return;
+      }
+      if (this.state.capturedImage != null) {
+        console.log("enviando imagem");
         const img64 = this.state.capturedImage;
         const imagesData = new FormData();
         const imageName = `${this.state.user.name}_${this.state.motoSelected}_${Date.now()}.jpg`;
@@ -112,54 +120,20 @@ export default class checklist extends Component {
         this.setState({imageName:imageName})
         const erro = await api.post('/upload', imagesData, { headers });
       }
-      var cleanState = this.state;
 
+      var cleanState = this.state;
       this.clean(cleanState);
-      var problems = this.isTrue(cleanState);
-      cleanState.problems = problems;
       delete cleanState.motos;
       delete cleanState.previewVisible;
       delete cleanState.password;
+      var problems = this.isTrue(cleanState);
+      cleanState.problems = problems;
       console.log(cleanState)
       const response = await api.post('/api/checklist', cleanState);
 
-
-
-      this.setState({
-        horarioInicial: "",
-        user: {},
-        motos: {},
-        motoSelected: "",
-        kmInicial: 0,
-        kmFinal: 0,
-        isCheckedPiscaDiantero: false,
-        isCheckedPiscaTraseiro: false,
-        isCheckedFarol: false,
-        isCheckedRetrovisor: false,
-        isCheckedSusDianteira: false,
-        isCheckedLuzFreio: false,
-        isCheckedParalama: false,
-        isCheckedTanqueCombustivel: false,
-        isCheckedDiscoFreio: false,
-        isCheckedPneuTraseiro: false,
-        isCheckedAroTraseiro: false,
-        isCheckedResOleoMotor: false,
-        isCheckedPneuDianteiro: false,
-        isCheckedAroDianteiro: false,
-        isCheckedMotor: false,
-        isCheckedCaixaPlastica: false,
-        isCheckedEscapamento: false,
-        isCheckedRelacao: false,
-        isCheckedNapaBanco: false,
-        annotation: "",
-        modalVisible: false,
-        previewVisible: false,
-        capturedImage: null,
-        imageName:"",
-      })
       Alert.alert('CheckList Enviado');
       await AsyncStorage.removeItem('@CodeApi:checkList')
-      this.props.navigation.navigate('login');
+      this.props.navigation.navigate('Login');
     } catch (response) {
       console.log("error: ");
       console.log(response);
@@ -178,7 +152,7 @@ export default class checklist extends Component {
 
 
   takePicture = async () => {
-    const options = { quality: 0.5, base64: true };
+    
     const data = await camera.takePictureAsync();
     console.log("Foto: ");
     console.log(data);
@@ -221,7 +195,9 @@ export default class checklist extends Component {
         const newState = JSON.parse(test);
         console.log("TEM ALGO AKI");
         this.setState(newState);
-
+        const response = await api.get('api/motos');
+        const rMoto = response.data.moto;
+        this.setState({ motos: rMoto });
       } else {
         const user = this.props.navigation.getParam('user');
         const response = await api.get('api/motos');
@@ -293,7 +269,7 @@ export default class checklist extends Component {
                             fontSize: 20
                           }}
                         >
-                          Re-take
+                          Tirar outra
                       </Text>
                       </TouchableOpacity>
                       <TouchableOpacity
@@ -312,7 +288,7 @@ export default class checklist extends Component {
                             fontSize: 20
                           }}
                         >
-                          save photo
+                          Salvar foto
                       </Text>
                       </TouchableOpacity>
                     </View>

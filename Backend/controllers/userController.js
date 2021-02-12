@@ -91,16 +91,19 @@ router.post("/checklist", async (req, res) => {
       return res.status(400).json({ error: "Moto não encontrado." });
     }
     console.log("Moto: " + moto + " encontrada.");
-    
+    let d = new Date();
+    const dataf = d.toString();
 
     const CheckList = {
-      user: state.user,
+      user: state.user.name,
       motoSelected: state.motoSelected,
       kmInicial: state.kmInicial,
       kmFinal: state.kmFinal,
       annotation: state.annotation,
       horarioInicial: state.horarioInicial,
+	  horarioFinal: dataf,
       problems: state.problems,
+	  imageName:state.imageName,
     };
 
     const checklist = await Checklist.create(CheckList);
