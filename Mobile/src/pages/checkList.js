@@ -1,14 +1,11 @@
-import React, { useReducer, useState, Component } from 'react';
-import { View, Button, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, Modal, Image, ImageBackground } from 'react-native';
+import React, {Component } from 'react';
+import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, Modal, Image, ImageBackground } from 'react-native';
 import { withNavigation } from 'react-navigation';
 import CheckBox from 'react-native-check-box'
 import { TextInput } from 'react-native-gesture-handler';
 import RNPickerSelect from 'react-native-picker-select';
 import api from '../services/api'
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as FileSystem from 'expo-file-system';
-import axios from 'axios'
-
 
 import { Camera } from 'expo-camera'
 import img_Camera from '../img_Camera.png';
@@ -64,6 +61,10 @@ export default class checklist extends Component {
         Alert.alert("Selecione um Moto");
         return;
       }
+      if(this.state.kmInicial==null){
+        Alert.alert("Preencha o KmInicial");
+        return;
+      }
       let d = new Date();
       const data = d.toString();
       console.log(data);
@@ -92,7 +93,6 @@ export default class checklist extends Component {
     var filtered = keys.filter(function (key) { 
       return obj[key] == true;
     });
-    //console.log(filtered);
     const x = filtered.toString();
     return x;
   }
@@ -101,6 +101,14 @@ export default class checklist extends Component {
     try {
       if(this.state.kmInicial > this.state.kmFinal){
         Alert.alert('KM inicial esta maior que a Final');
+        return;
+      }
+      if(this.state.motoSelected==null){
+        Alert.alert("Selecione um Moto");
+        return;
+      }
+      if(this.state.horarioInicial==null){
+        Alert.alert("Voce não salvou");
         return;
       }
       if (this.state.capturedImage != null) {
