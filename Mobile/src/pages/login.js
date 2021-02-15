@@ -1,15 +1,11 @@
-import { StatusBar } from 'expo-status-bar';
-import React, { useReducer, useState, Component } from 'react';
+import React, {Component} from 'react';
 import { StyleSheet, Text, View, Button, Image, TextInput, Alert, ToastAndroid } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { withNavigation } from 'react-navigation';
 import api from '../services/api'
 import img_Logo from '../logo_case.png'
 
-function clickou() {
-  console.log("CLickou no botao")
-}
-
+//objeto para controle de user e senha
 const params = {
   "username": "",
   "password": ""
@@ -22,26 +18,25 @@ export default class Login extends Component {
     error: '',
     loggedInUser: null,
   }
-
+//Função para alterar o user quando alterado no input
 handleUserChange = (username) => {
     username = username.toString();
     params.username = username;
   }
-
+//Função para alterar a senha quando alterado no input
 handlePasswordChange = (password) => {
      password = password.toString();
      params.password = password;
   }
-
+  // Função para fazer a requisição no servidor para autenticar o usuario
   signIn = async () => {
-
     try {
       const response = await api.post('/api/authenticate',
         params);
       console.log("Clickou no botao");
       
       const { user, token } = response.data;
-
+      // Armazena no dispositivo o usuario e o token de autentificação
       await AsyncStorage.multiSet([
         ['@CodeApi:token', token],
         ['@CodeApi:token', JSON.stringify(user)]
@@ -49,7 +44,7 @@ handlePasswordChange = (password) => {
 
       this.setState({ loggedInUser: user.name });
 
-      //Alert.alert('Login com Sucesso!');
+      //Passa para a tela de Checklist
       this.props.navigation.navigate('CheckList',{user});
       
     } catch (response) {
@@ -61,7 +56,7 @@ handlePasswordChange = (password) => {
       
     };
   };
-
+  //Função que ocorre quando a tela inicializa para checar se alguem foi logado anteriormente
   async componentDidMount() {
     
     const token = await AsyncStorage.getItem('@CodeApi:token');

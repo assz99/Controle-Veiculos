@@ -1,4 +1,4 @@
-import React, {Component } from 'react';
+import React, { Component } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, Modal, Image, ImageBackground } from 'react-native';
 import { withNavigation } from 'react-navigation';
 import CheckBox from 'react-native-check-box'
@@ -12,6 +12,7 @@ import img_Camera from '../img_Camera.png';
 let camera = Camera;
 
 export default class checklist extends Component {
+  //Variavel de estado para controle da pagina
   state = {
     horarioInicial: '',
     user: {},
@@ -44,41 +45,44 @@ export default class checklist extends Component {
     capturedImage: null,
     problems: "",
   }
-
+  //Função para setar o estado quando o input kmInicial for alterado
   handleKmInicial = (kmInicial) => {
     kmInicial = kmInicial.toString();
     this.setState({ kmInicial: kmInicial })
   }
-
+  //Função para setar o estado quando o input kmFinal for alterado
   handleKmFinal = (kmFinal) => {
     kmFinal = kmFinal.toString();
     this.setState({ kmFinal: kmFinal })
   }
-
+  //Função para o botão de gravar
   handleGravar = async () => {
     try {
-      if(this.state.motoSelected==null){
+      //Primeiro alerta o usuario caso ele não tenha selecionado a moto ou não tenha colocado o kmInicial
+      if (this.state.motoSelected == null) {
         Alert.alert("Selecione um Moto");
         return;
       }
-      if(this.state.kmInicial==null){
+      if (this.state.kmInicial == null) {
         Alert.alert("Preencha o KmInicial");
         return;
       }
+      //Pegar a data do dispositivo
       let d = new Date();
       const data = d.toString();
       console.log(data);
-      await this.setState({ horarioInicial: data }); 
+      await this.setState({ horarioInicial: data });
       const checklist = JSON.stringify(this.state);
       console.log(checklist);
+      //Salvar o estado atual no armazenamento do dispositivo para quando voltar o app vai estar igual
       await AsyncStorage.setItem('@CodeApi:checkList', checklist);
       console.log("Gravado");
-      Alert.alert('Gravado com Sucesso!');     
+      Alert.alert('Gravado com Sucesso!');
     } catch (e) {
       console.log("error:" + e);
     }
   }
-
+  //Função para limpar todo atributo  que é falso ou nulo no objeto
   clean(obj) {
     for (var propName in obj) {
       if (obj[propName] === null || obj[propName] === false) {
@@ -87,30 +91,32 @@ export default class checklist extends Component {
     }
     return obj
   }
-
+  //Função para filtar apenas quais atributos estão true
   isTrue(obj) {
     var keys = Object.keys(obj);
-    var filtered = keys.filter(function (key) { 
+    var filtered = keys.filter(function (key) {
       return obj[key] == true;
     });
     const x = filtered.toString();
     return x;
   }
-
+  //Função para o botão enviar
   handleEnviar = async () => {
     try {
-      if(this.state.kmInicial > this.state.kmFinal){
+      //Alertar o usuario
+      if (this.state.kmInicial > this.state.kmFinal) {
         Alert.alert('KM inicial esta maior que a Final');
         return;
       }
-      if(this.state.motoSelected==null){
+      if (this.state.motoSelected == null) {
         Alert.alert("Selecione um Moto");
         return;
       }
-      if(this.state.horarioInicial==null){
+      if (this.state.horarioInicial == null) {
         Alert.alert("Voce não salvou");
         return;
       }
+      //Checar se existe imagem caso tenha faz o "post" da imagem 
       if (this.state.capturedImage != null) {
         console.log("enviando imagem");
         const img64 = this.state.capturedImage;
@@ -125,21 +131,23 @@ export default class checklist extends Component {
         const headers = {
           'Content-Type': 'multipart/form-data'
         }
-        this.setState({imageName:imageName})
+        this.setState({ imageName: imageName })
         const erro = await api.post('/upload', imagesData, { headers });
       }
-
+      //Aki se limpa o estado para envialo tirando tudo oque e falso e nulo
       var cleanState = this.state;
       this.clean(cleanState);
       delete cleanState.motos;
       delete cleanState.previewVisible;
       delete cleanState.password;
+      //Aki se filtra apenas os estados dos checkbox e pega apenas oque estão "true"
       var problems = this.isTrue(cleanState);
       cleanState.problems = problems;
       console.log(cleanState)
       const response = await api.post('/api/checklist', cleanState);
 
       Alert.alert('CheckList Enviado');
+      //Apos enviado checklist se apaga todos os dados do armazenamento do dispositivo e retorna para a tela de login
       await AsyncStorage.removeItem('@CodeApi:checkList')
       this.props.navigation.navigate('Login');
     } catch (response) {
@@ -147,29 +155,25 @@ export default class checklist extends Component {
       console.log(response);
     }
   }
-
+  //Função para setar o estado quando o input anotação for alterado
   handleAnnotationChange = (annotation) => {
     annotation = annotation.toString();
     this.setState({ annotation: annotation })
   }
-
+  // Abrir o modal para a camera que abre a tela da camera no dispositivo
   setModalVisible = (visible) => {
     this.setState({ modalVisible: visible });
   }
-
-
-
+  // Função para tirar a foto
   takePicture = async () => {
-    
     const data = await camera.takePictureAsync();
-    console.log("Foto: ");
-    console.log(data);
+    //Aki se salva a imagem.
     this.setState({
       capturedImage: data,
       previewVisible: true
     })
   };
-
+  //Função para ligar a camera
   __startCamera = async () => {
     const { status } = await Camera.requestPermissionsAsync()
     console.log(status)
@@ -180,33 +184,33 @@ export default class checklist extends Component {
       Alert.alert('Access denied')
     }
   }
-
+  // Função para re-tirar a foto, apagando a foto tirada
   __retakePicture = () => {
-    //console.log("Teste");
     this.setState({
       previewVisible: false,
       capturedImage: null
     });
-    console.log("Teste");
     this.__startCamera();
   }
-
+  // Função apenas para fechar a camera caso queria salvar a imagem
   __savePhoto = () => {
     this.setState({ modalVisible: false });
     Alert.alert("Imagem Salva");
   }
-
+  //Esta função faz tudo o que estiver nela quando a tela for inicializada
   async componentDidMount() {
     try {
+      //Primeiro lê o armazenamento do dispositivo para checar caso a algo para utilizar
       const test = await AsyncStorage.getItem('@CodeApi:checkList');
       if (test !== null) {
+        //caso tenha ele pega tudo e passa para o estado
         const newState = JSON.parse(test);
-        console.log("TEM ALGO AKI");
         this.setState(newState);
         const response = await api.get('api/motos');
         const rMoto = response.data.moto;
         this.setState({ motos: rMoto });
       } else {
+        //caso não tenha apenas pega o usuario que foi passado na tela de login e faz a requisição para saber as motos cadastradas
         const user = this.props.navigation.getParam('user');
         const response = await api.get('api/motos');
         this.setState({ user: user });
@@ -217,16 +221,19 @@ export default class checklist extends Component {
       console.log(response);
     }
   }
-
+  // aki começa a montagem da tela
   render() {
+    //Objeto para controle do listPicker das motos
     const placeholder = {
       label: 'Selecione a moto',
       value: null,
       color: '#FFFFFF',
     };
     return (
+      //Primeiro se cria o scrollview que permite a movimentação da tela e depois a view da tela
       <ScrollView style={styles.container}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          /* aki se monta o modal da camera que so surge quando solicitado e caso haja alguma imagem ele monta a imagem com as perguntas*/
           <Modal
             animationType="slide"
             transparent={false}
@@ -364,6 +371,8 @@ export default class checklist extends Component {
                 </Camera>
               )}
           </Modal>
+          /*Aki se monta a tela do checklist*/
+          /*Aki se monta o listPicker das motos*/ 
           <RNPickerSelect
             placeholder={placeholder}
             items={this.state.motos}
@@ -371,12 +380,11 @@ export default class checklist extends Component {
               this.setState({
                 motoSelected: value,
               });
-              //console.log("Moto selecionada: "+ value)
             }}
             value={this.state.motoSelected}
             style={pickerSelectStyles}
           />
-
+          /*Aki se monta os inputs do kmInicial e final*/
           <View style={{ flex: 1, flexDirection: 'row', }}>
             <TextInput
               style={{ height: 40, width: 220, borderColor: 'white', borderWidth: 1, color: 'white', }}
@@ -400,6 +408,7 @@ export default class checklist extends Component {
             <Text style={styles.kmText}>KM</Text>
           </View>
         </View>
+        /*Aki se monta os checkBox*/
         <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
           <CheckBox style={{ flex: 1, padding: 10 }} onClick={() => {
             this.setState({
@@ -565,6 +574,7 @@ export default class checklist extends Component {
             checkBoxColor={'#FF0000'} isChecked={this.state.isCheckedNapaBanco}
             rightText={'Napa Banco'} rightTextStyle={styles.White}
           />
+          /*Aki se cria o botao para abertura da camera*/
           <TouchableOpacity onPress={() => {
             this.__startCamera();
           }}>
@@ -573,9 +583,11 @@ export default class checklist extends Component {
             />
           </TouchableOpacity>
         </View>
+        /*Aki se cria o bloco de anotação*/
         <TextInput placeholder="Anotações" placeholderTextColor='#FFFFFF' value={this.state.annotation} onChangeText={this.handleAnnotationChange} style={{ height: 100, width: "100%", borderColor: 'white', borderWidth: 1, color: 'white' }} >
         </TextInput>
         <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', marginTop: 5 }}>
+        /*Aki se cria os botões de gravar e salvar*/
           <TouchableOpacity style={{ height: 40, width: '50%', backgroundColor: 'blue', alignItems: 'center', borderColor: 'black', borderWidth: 1, }} onPress={this.handleGravar}>
             <Text style={styles.White}>Salvar</Text>
           </TouchableOpacity>
@@ -589,13 +601,11 @@ export default class checklist extends Component {
   }
 }
 
-
+//Codigo de estilização
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000000',
-    //alignItems: 'center',
-    //justifyContent: 'center',
   },
   White: {
     color: '#FFFFFF',
@@ -630,7 +640,7 @@ const pickerSelectStyles = StyleSheet.create({
     borderColor: 'purple',
     borderRadius: 8,
     color: 'white',
-    paddingRight: 30, // to ensure the text is never behind the icon
+    paddingRight: 30,
   },
 });
 

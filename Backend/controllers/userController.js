@@ -5,7 +5,7 @@ const User = mongoose.model("User");
 const Motorcycles = mongoose.model("Motorcycles");
 const Checklist = mongoose.model("CheckList");
 
-
+//Aki se cria a requisição para registrar um novo usuario
 router.post("/register", async (req, res) => {
   const { name, username, password } = req.body;
 
@@ -21,7 +21,7 @@ router.post("/register", async (req, res) => {
     return res.status(400).json({ error: "Falha em cadastrar usuario." });
   }
 });
-
+//Aki se cria a requisição para autenticar o usuario
 router.post("/authenticate", async (req, res) => {
   try {
 
@@ -47,7 +47,7 @@ router.post("/authenticate", async (req, res) => {
     return res.status(400).json({ error: "Falha de autentificação de usuario." });
   }
 });
-
+//Aki se cria a requisição para registrar uma nova moto
 router.post("/motos", async (req, res) => {
   const { label, value } = req.body;
 
@@ -68,7 +68,7 @@ router.post("/motos", async (req, res) => {
 });
 
 
-
+//Aki se cria a requisição para passar as motos cadastradas
 router.get("/motos", async (req, res) => {
   try {
     const moto = await Motorcycles.find();
@@ -77,7 +77,7 @@ router.get("/motos", async (req, res) => {
     return res.status(400).json({ error: "Falha em pegar as motos." });
   }
 })
-
+//Aki se cria a requisição para receber os dados do checkist e armazenar no mongoDB
 router.post("/checklist", async (req, res) => {
 
   try {
@@ -101,7 +101,7 @@ router.post("/checklist", async (req, res) => {
       kmFinal: state.kmFinal,
       annotation: state.annotation,
       horarioInicial: state.horarioInicial,
-	  horarioFinal: dataf,
+	    horarioFinal: dataf,
       problems: state.problems,
 	  imageName:state.imageName,
     };

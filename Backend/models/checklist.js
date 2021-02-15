@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+//Cria o modelo do checklist que se armazena no mongoDB
 const checkListSchema = new mongoose.Schema({
     user: {
       type: String,

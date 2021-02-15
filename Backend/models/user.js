@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-
+//Cria o modelo do user que se armazena no mongoDB e as função do mesmo
 const UserSchema = new mongoose.Schema({
   name: {
     type: String,
