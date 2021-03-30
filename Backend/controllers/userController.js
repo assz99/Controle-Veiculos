@@ -77,6 +77,17 @@ router.get("/motos", async (req, res) => {
     return res.status(400).json({ error: "Falha em pegar as motos." });
   }
 })
+
+router.get("/pilots", async (req,res)=>{
+	try{	
+		const pilots = await User.find({},{"_id":0, "name":1, "username":1});
+		return res.json({pilots});
+	}catch(err){
+		return res.status(400).json({ error: "Falha em pegar os usuarios." });
+	}
+	
+})
+
 //Aki se cria a requisição para receber os dados do checkist e armazenar no mongoDB
 router.post("/checklist", async (req, res) => {
 
