@@ -52,5 +52,5 @@ app.post('/upload', upload.single('image'), (req,res)=>{
 
 // Inicia as rotas da API
 app.use("/api", require("./controllers/userController"));
-console.log("Servidor Rodando na porta 3000")
-app.listen(3000);
+console.log("Servidor Rodando na porta 8008")
+app.listen(8008);
