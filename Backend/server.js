@@ -10,7 +10,6 @@ const io = require('socket.io')(server,{
   origin: "http://localhost:19000",
   methods: ["GET", "POST"]
 }});
-
 // Conecta no MongoDB
 mongoose.connect(
   "mongodb://localhost:27017/checkList",{ 
@@ -32,13 +31,15 @@ app.use((req,res, next) =>{
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
+
 //Aki se cria a estrutura de como a imagem vai ser armazenada
 const Storage = multer.diskStorage({
   destination(req, file, callback) {
     callback(null, './images')
   },
   filename(req, file, callback) {
-    callback(null, `${file.originalname}.jpg`)
+    callback(null, `${file.originalname}`)
   },
 })
 //Cria o middleware para armazenamento da imagem
@@ -52,5 +53,6 @@ app.post('/upload', upload.single('image'), (req,res)=>{
 
 // Inicia as rotas da API
 app.use("/api", require("./controllers/userController"));
+app.use('/images',express.static(path.join(__dirname, '/images'))); 
 console.log("Servidor Rodando na porta 8008")
 app.listen(8008);

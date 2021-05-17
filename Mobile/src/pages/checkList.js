@@ -233,7 +233,7 @@ export default class checklist extends Component {
       //Primeiro se cria o scrollview que permite a movimentação da tela e depois a view da tela
       <ScrollView style={styles.container}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          /* aki se monta o modal da camera que so surge quando solicitado e caso haja alguma imagem ele monta a imagem com as perguntas*/
+          {/* aki se monta o modal da camera que so surge quando solicitado e caso haja alguma imagem ele monta a imagem com as perguntas*/} 
           <Modal
             animationType="slide"
             transparent={false}
@@ -371,8 +371,7 @@ export default class checklist extends Component {
                 </Camera>
               )}
           </Modal>
-          /*Aki se monta a tela do checklist*/
-          /*Aki se monta o listPicker das motos*/ 
+          
           <RNPickerSelect
             placeholder={placeholder}
             items={this.state.motos}
@@ -383,9 +382,12 @@ export default class checklist extends Component {
             }}
             value={this.state.motoSelected}
             style={pickerSelectStyles}
-          />
-          /*Aki se monta os inputs do kmInicial e final*/
+          >{/*Aki se monta a tela do checklist*/
+            /*Aki se monta o listPicker das motos*/ }
+            </RNPickerSelect>
+          
           <View style={{ flex: 1, flexDirection: 'row', }}>
+            {/*Aki se monta os inputs do kmInicial e final*/}
             <TextInput
               style={{ height: 40, width: 220, borderColor: 'white', borderWidth: 1, color: 'white', }}
               placeholder="                     KM Inicial"
@@ -408,8 +410,9 @@ export default class checklist extends Component {
             <Text style={styles.kmText}>KM</Text>
           </View>
         </View>
-        /*Aki se monta os checkBox*/
+        
         <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+          {/*Aki se monta os checkBox*/}
           <CheckBox style={{ flex: 1, padding: 10 }} onClick={() => {
             this.setState({
               isCheckedPiscaDiantero: !this.state.isCheckedPiscaDiantero
@@ -574,20 +577,22 @@ export default class checklist extends Component {
             checkBoxColor={'#FF0000'} isChecked={this.state.isCheckedNapaBanco}
             rightText={'Napa Banco'} rightTextStyle={styles.White}
           />
-          /*Aki se cria o botao para abertura da camera*/
+          
           <TouchableOpacity onPress={() => {
             this.__startCamera();
           }}>
+            {/*Aki se cria o botao para abertura da camera*/}
             <Image style={styles.logo}
               source={img_Camera}
             />
           </TouchableOpacity>
         </View>
-        /*Aki se cria o bloco de anotação*/
+  
         <TextInput placeholder="Anotações" placeholderTextColor='#FFFFFF' value={this.state.annotation} onChangeText={this.handleAnnotationChange} style={{ height: 100, width: "100%", borderColor: 'white', borderWidth: 1, color: 'white' }} >
+        {/*Aki se cria o bloco de anotação*/}
         </TextInput>
         <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', marginTop: 5 }}>
-        /*Aki se cria os botões de gravar e salvar*/
+        {/*Aki se cria os botões de gravar e salvar*/}
           <TouchableOpacity style={{ height: 40, width: '50%', backgroundColor: 'blue', alignItems: 'center', borderColor: 'black', borderWidth: 1, }} onPress={this.handleGravar}>
             <Text style={styles.White}>Salvar</Text>
           </TouchableOpacity>
