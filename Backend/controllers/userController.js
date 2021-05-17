@@ -5,6 +5,8 @@ const User = mongoose.model("User");
 const Motorcycles = mongoose.model("Motorcycles");
 const Checklist = mongoose.model("CheckList");
 
+
+
 //Aki se cria a requisição para registrar um novo usuario
 router.post("/register", async (req, res) => {
   const { name, username, password } = req.body;
@@ -78,21 +80,35 @@ router.get("/motos", async (req, res) => {
   }
 })
 
-router.get("/pilots", async (req,res)=>{
-	try{	
-		const pilots = await User.find({},{"_id":0, "name":1, "username":1});
-		return res.json({pilots});
-	}catch(err){
-		return res.status(400).json({ error: "Falha em pegar os usuarios." });
-	}
-	
+router.get("/pilots", async (req, res) => {
+  try {
+    const pilots = await User.find({}, { "_id": 0, "name": 1, "username": 1 });
+    return res.json({ pilots });
+  } catch (err) {
+    return res.status(400).json({ error: "Falha em pegar os usuarios." });
+  }
+
 })
+
+
+router.get("/checklist", async (req, res) => {
+  try {
+    const checklist = await Checklist.find({}, { "_id": 0, "user": 1, "motoSelected": 1, "kmInicial": 1, "kmFinal": 1, "annotation": 1, "horarioInicial": 1, "horarioFinal": 1, "problems": 1, "imageName": 1 });
+    return res.json({ checklist });
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ error: "Falha em pegar os checklists." });
+  }
+
+})
+
+
 
 //Aki se cria a requisição para receber os dados do checkist e armazenar no mongoDB
 router.post("/checklist", async (req, res) => {
 
   try {
-    const state  = req.body;
+    const state = req.body;
     console.log(req.body);
     const moto = state.motoSelected;
     const data = state.horarioInicial;
@@ -112,9 +128,9 @@ router.post("/checklist", async (req, res) => {
       kmFinal: state.kmFinal,
       annotation: state.annotation,
       horarioInicial: state.horarioInicial,
-	    horarioFinal: dataf,
+      horarioFinal: dataf,
       problems: state.problems,
-	  imageName:state.imageName,
+      imageName: state.imageName,
     };
 
     const checklist = await Checklist.create(CheckList);
@@ -128,5 +144,5 @@ router.post("/checklist", async (req, res) => {
   }
 });
 
- 
+
 module.exports = router;
