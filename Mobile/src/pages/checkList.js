@@ -76,16 +76,13 @@ export default class checklist extends Component {
       //Pegar a data do dispositivo
       let d = new Date();
       const data = d.toString();
-      //console.log(data);
       await this.setState({ horarioInicial: data });
       const checklist = JSON.stringify(this.state);
-      //console.log(checklist);
       //Salvar o estado atual no armazenamento do dispositivo para quando voltar o app vai estar igual
       await AsyncStorage.setItem('@CodeApi:checkList', checklist);
       console.log("Gravado");
       if (response.data.message == "oil") {
         console.log("Entrou");
-        //msgGravar = msgGravar + "TROCAR O OLEO DA MOTO!!";
         this.handleAlertModal();
       }
       Alert.alert(msgGravar);
