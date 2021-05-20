@@ -31,7 +31,7 @@ handlePasswordChange = (password) => {
   // Função para fazer a requisição no servidor para autenticar o usuario
   signIn = async () => {
     try {
-      console.log("Clickou no botao");
+      //console.log("Clickou no botao");
       const response = await api.post('/api/authenticate',
         params);
       

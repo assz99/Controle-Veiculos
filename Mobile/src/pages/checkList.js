@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, Modal, Image, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, Modal, Image, ImageBackground, Pressable } from 'react-native';
 import { withNavigation } from 'react-navigation';
 import CheckBox from 'react-native-check-box'
 import { TextInput } from 'react-native-gesture-handler';
@@ -39,11 +39,13 @@ export default class checklist extends Component {
     isCheckedEscapamento: false,
     isCheckedRelacao: false,
     isCheckedNapaBanco: false,
+    isCheckedOleo: false,
     annotation: "",
     modalVisible: false,
     previewVisible: false,
     capturedImage: null,
     problems: "",
+    modalAlert:false,
   }
   //Função para setar o estado quando o input kmInicial for alterado
   handleKmInicial = (kmInicial) => {
@@ -67,17 +69,26 @@ export default class checklist extends Component {
         Alert.alert("Preencha o KmInicial");
         return;
       }
+      var msgGravar = "Gravado com Sucesso!"
+      const response = await api.post('/api/oil', { motoSelected: this.state.motoSelected, kmInicial: this.state.kmInicial });
+      console.log(response.data.message);
+      
       //Pegar a data do dispositivo
       let d = new Date();
       const data = d.toString();
-      console.log(data);
+      //console.log(data);
       await this.setState({ horarioInicial: data });
       const checklist = JSON.stringify(this.state);
-      console.log(checklist);
+      //console.log(checklist);
       //Salvar o estado atual no armazenamento do dispositivo para quando voltar o app vai estar igual
       await AsyncStorage.setItem('@CodeApi:checkList', checklist);
       console.log("Gravado");
-      Alert.alert('Gravado com Sucesso!');
+      if (response.data.message == "oil") {
+        console.log("Entrou");
+        //msgGravar = msgGravar + "TROCAR O OLEO DA MOTO!!";
+        this.handleAlertModal();
+      }
+      Alert.alert(msgGravar);
     } catch (e) {
       console.log("error:" + e);
     }
@@ -126,7 +137,6 @@ export default class checklist extends Component {
           name: imageName,
           uri: img64.uri,
           type: 'image/jpg',
-
         })
         const headers = {
           'Content-Type': 'multipart/form-data'
@@ -145,10 +155,10 @@ export default class checklist extends Component {
       cleanState.problems = problems;
       console.log(cleanState)
       const response = await api.post('/api/checklist', cleanState);
-
-      Alert.alert('CheckList Enviado');
       //Apos enviado checklist se apaga todos os dados do armazenamento do dispositivo e retorna para a tela de login
       await AsyncStorage.removeItem('@CodeApi:checkList')
+      Alert.alert('CheckList Enviado');
+
       this.props.navigation.navigate('Login');
     } catch (response) {
       console.log("error: ");
@@ -159,6 +169,9 @@ export default class checklist extends Component {
   handleAnnotationChange = (annotation) => {
     annotation = annotation.toString();
     this.setState({ annotation: annotation })
+  }
+  handleAlertModal = () => {
+    this.setState({ modalAlert: !this.state.modalAlert })
   }
   // Abrir o modal para a camera que abre a tela da camera no dispositivo
   setModalVisible = (visible) => {
@@ -233,7 +246,24 @@ export default class checklist extends Component {
       //Primeiro se cria o scrollview que permite a movimentação da tela e depois a view da tela
       <ScrollView style={styles.container}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          {/* aki se monta o modal da camera que so surge quando solicitado e caso haja alguma imagem ele monta a imagem com as perguntas*/} 
+        <Modal
+            animationType="slide"
+            transparent={true}
+            visible={this.state.modalAlert}
+          >
+            <View style={styles.centeredView}>
+              <View style={styles.modalView}>
+              <Text style={styles.modalText}>Trocar o Oleo Da Moto!!!</Text>
+              <Pressable
+                style={[styles.button, styles.buttonClose]}
+                onPress={this.handleAlertModal}
+              >
+                <Text style={styles.textStyle}>Ok!!</Text>
+              </Pressable>
+              </View>
+            </View>
+          </Modal>
+          {/* aki se monta o modal da camera que so surge quando solicitado e caso haja alguma imagem ele monta a imagem com as perguntas*/}
           <Modal
             animationType="slide"
             transparent={false}
@@ -311,67 +341,67 @@ export default class checklist extends Component {
                 </ImageBackground>
               </View>
             ) : (
-                <Camera
-                  type={Camera.Constants.Type.back}
-                  flashMode={'off'}
-                  style={{ flex: 1 }}
-                  ref={(r) => {
-                    camera = r
+              <Camera
+                type={Camera.Constants.Type.back}
+                flashMode={'off'}
+                style={{ flex: 1 }}
+                ref={(r) => {
+                  camera = r
+                }}
+              >
+                <View
+                  style={{
+                    flex: 1,
+                    width: '100%',
+                    backgroundColor: 'transparent',
+                    flexDirection: 'row'
                   }}
                 >
                   <View
                     style={{
+                      position: 'absolute',
+                      left: '5%',
+                      top: '10%',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                  </View>
+                  <View
+                    style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      flexDirection: 'row',
                       flex: 1,
                       width: '100%',
-                      backgroundColor: 'transparent',
-                      flexDirection: 'row'
+                      padding: 20,
+                      justifyContent: 'space-between'
                     }}
                   >
                     <View
                       style={{
-                        position: 'absolute',
-                        left: '5%',
-                        top: '10%',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between'
-                      }}
-                    >
-                    </View>
-                    <View
-                      style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        flexDirection: 'row',
+                        alignSelf: 'center',
                         flex: 1,
-                        width: '100%',
-                        padding: 20,
-                        justifyContent: 'space-between'
+                        alignItems: 'center'
                       }}
                     >
-                      <View
+                      <TouchableOpacity
+                        onPress={this.takePicture}
                         style={{
-                          alignSelf: 'center',
-                          flex: 1,
-                          alignItems: 'center'
+                          width: 70,
+                          height: 70,
+                          bottom: 0,
+                          borderRadius: 50,
+                          backgroundColor: '#fff'
                         }}
-                      >
-                        <TouchableOpacity
-                          onPress={this.takePicture}
-                          style={{
-                            width: 70,
-                            height: 70,
-                            bottom: 0,
-                            borderRadius: 50,
-                            backgroundColor: '#fff'
-                          }}
-                        />
-                      </View>
+                      />
                     </View>
                   </View>
-                </Camera>
-              )}
+                </View>
+              </Camera>
+            )}
           </Modal>
-          
+
           <RNPickerSelect
             placeholder={placeholder}
             items={this.state.motos}
@@ -383,9 +413,9 @@ export default class checklist extends Component {
             value={this.state.motoSelected}
             style={pickerSelectStyles}
           >{/*Aki se monta a tela do checklist*/
-            /*Aki se monta o listPicker das motos*/ }
-            </RNPickerSelect>
-          
+            /*Aki se monta o listPicker das motos*/}
+          </RNPickerSelect>
+
           <View style={{ flex: 1, flexDirection: 'row', }}>
             {/*Aki se monta os inputs do kmInicial e final*/}
             <TextInput
@@ -410,7 +440,7 @@ export default class checklist extends Component {
             <Text style={styles.kmText}>KM</Text>
           </View>
         </View>
-        
+
         <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
           {/*Aki se monta os checkBox*/}
           <CheckBox style={{ flex: 1, padding: 10 }} onClick={() => {
@@ -577,7 +607,15 @@ export default class checklist extends Component {
             checkBoxColor={'#FF0000'} isChecked={this.state.isCheckedNapaBanco}
             rightText={'Napa Banco'} rightTextStyle={styles.White}
           />
-          
+          <CheckBox style={{ flex: 1, padding: 10 }} onClick={() => {
+            this.setState({
+              isCheckedOleo: !this.state.isCheckedOleo
+            })
+          }}
+            checkBoxColor={'#FF0000'} isChecked={this.state.isCheckedOleo}
+            rightText={'Troca Oleo'} rightTextStyle={styles.White}
+          />
+
           <TouchableOpacity onPress={() => {
             this.__startCamera();
           }}>
@@ -587,12 +625,12 @@ export default class checklist extends Component {
             />
           </TouchableOpacity>
         </View>
-  
+
         <TextInput placeholder="Anotações" placeholderTextColor='#FFFFFF' value={this.state.annotation} onChangeText={this.handleAnnotationChange} style={{ height: 100, width: "100%", borderColor: 'white', borderWidth: 1, color: 'white' }} >
-        {/*Aki se cria o bloco de anotação*/}
+          {/*Aki se cria o bloco de anotação*/}
         </TextInput>
         <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', marginTop: 5 }}>
-        {/*Aki se cria os botões de gravar e salvar*/}
+          {/*Aki se cria os botões de gravar e salvar*/}
           <TouchableOpacity style={{ height: 40, width: '50%', backgroundColor: 'blue', alignItems: 'center', borderColor: 'black', borderWidth: 1, }} onPress={this.handleGravar}>
             <Text style={styles.White}>Salvar</Text>
           </TouchableOpacity>
@@ -631,8 +669,41 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 14
-  }
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "red",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5
+  },
+  button: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: "center",
+    fontWeight:"bold",
+    fontSize:20,
 
+  },
+  
 
 });
 
