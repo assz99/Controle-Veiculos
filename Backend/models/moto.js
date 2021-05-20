@@ -11,7 +11,17 @@ const MotorcyclesSchema = new mongoose.Schema({
       unique: true,
       required: true,
       lowercase: true
-    }
+    },
+    oil: {
+      type: Number,
+      required: true,
+      default: 0
+    },
+    lastMileage: {
+      type: Number,
+      required: true,
+      default: 0
+    },
   },{collection:'motorcycles'}
   );
 

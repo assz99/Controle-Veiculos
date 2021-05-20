@@ -10,11 +10,13 @@ const io = require('socket.io')(server,{
   origin: "http://localhost:19000",
   methods: ["GET", "POST"]
 }});
+const path = require('path');
 // Conecta no MongoDB
 mongoose.connect(
   "mongodb://localhost:27017/checkList",{ 
     useUnifiedTopology: true, 
-    useNewUrlParser: true
+    useNewUrlParser: true,
+	useFindAndModify: false
     }
 );
 

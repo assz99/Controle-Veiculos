@@ -101,7 +101,28 @@ router.get("/checklist", async (req, res) => {
   }
 
 })
+router.post("/oil", async (req, res) => {
+  try {
+    
+    const moto = req.body.motoSelected;
+    const kmInicial = req.body.kmInicial;
+    const dbData = await Motorcycles.findOne({value:moto});
+    
+    if(kmInicial >= dbData.oil){
+      return res.status(200).json({
+        message: 'oil',
+      })
+    }
+    
+    return res.status(200).json({
+      message: 'sucess!',
+    })
 
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ error: "Falha em Verificar o oleo" });
+  }
+})
 
 
 //Aki se cria a requisição para receber os dados do checkist e armazenar no mongoDB
@@ -109,7 +130,7 @@ router.post("/checklist", async (req, res) => {
 
   try {
     const state = req.body;
-    console.log(req.body);
+    //console.log(req.body);
     const moto = state.motoSelected;
     const data = state.horarioInicial;
     const nMoto = await Motorcycles.findOne({ value: moto });
@@ -120,7 +141,14 @@ router.post("/checklist", async (req, res) => {
     console.log("Moto: " + moto + " encontrada.");
     let d = new Date();
     const dataf = d.toString();
-
+    
+	const test = await Motorcycles.findOneAndUpdate({value:state.motoSelected},{lastMileage:state.kmFinal},{new: true});
+    if(state.problems.indexOf("isCheckedOleo") != -1 ){
+      const newOil = Number(state.kmInicial) + 1000;
+      await Motorcycles.findOneAndUpdate({value:state.motoSelected}, {oil:newOil},{new: true});
+    }
+    
+    
     const CheckList = {
       user: state.user.name,
       motoSelected: state.motoSelected,
