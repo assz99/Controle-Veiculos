@@ -13,7 +13,7 @@ const io = require('socket.io')(server,{
 const path = require('path');
 // Conecta no MongoDB
 mongoose.connect(
-  "mongodb://localhost:27017/checkList",{ 
+  "mongodb://192.168.4.119:27017/checkList",{ 
     useUnifiedTopology: true, 
     useNewUrlParser: true,
 	useFindAndModify: false
